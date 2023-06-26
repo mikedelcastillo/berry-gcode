@@ -12,8 +12,10 @@ export const processData = (data: string) => {
   const gcodes = parseGCode(data)
   for(const gcode of gcodes){
     if(GCODE_IGNORE.includes(gcode.command)) continue
+    
     if(gcode.command.startsWith("G")) lastG = gcode
     if(gcode.command.startsWith("M")) lastM = gcode
+    
     if(gcode.command === "" && gcode.cleanLine !== ""){
       if(typeof gcode.parameters.T === "number"){
         // Ignore tool change

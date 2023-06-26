@@ -1,4 +1,5 @@
 const GCODE_COMMAND_START = ["G", "M"]
+const GCODE_PLANE_SELECTION = ["G17", "G18", "G19"]
 const GCODE_IGNORE_COMMAND = ["G93", "G94", "G95"]
 const GCODE_COMMENT_REGEX = /\(.*?\)|\;.*$/
 
@@ -10,7 +11,13 @@ export type GCode = {
 }
 
 export const parseGCode = (data: string): GCode[] => {
-  return data.trim()
+  let mut = data.toUpperCase()
+
+  // Break plane selection
+  for(const command of GCODE_PLANE_SELECTION)
+    mut = mut.replace(new RegExp(command, "gmi"), `${command}\n`)
+    
+  return mut.trim()
     .split(/[\n\r]+/gmi)
     .map(line => line.trim())
     .filter(line => line.length > 0)
