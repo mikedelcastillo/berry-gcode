@@ -11,9 +11,9 @@ export const processData = (data: string) => {
 
   const gcodes = parseGCode(data)
   for(const gcode of gcodes){
+    if(GCODE_IGNORE.includes(gcode.command)) continue
     if(gcode.command.startsWith("G")) lastG = gcode
     if(gcode.command.startsWith("M")) lastM = gcode
-
     if(gcode.command === "" && gcode.cleanLine !== ""){
       if(typeof gcode.parameters.T === "number"){
         // Ignore tool change
@@ -25,13 +25,11 @@ export const processData = (data: string) => {
         throw new Error(`Don't know what to do with "${gcode.rawLine}"`)
       }
     } else{
-      if(!GCODE_IGNORE.includes(gcode.command)){
-        output.push(gcode.cleanLine)
+      output.push(gcode.cleanLine)
 
-        // Add dwell to M3, M4, M5
-        if(GCODE_ADD_DWELL.includes(gcode.command)){
-          output.push(`G4 P5`) // Wait 5 seconds
-        }
+      // Add dwell to M3, M4, M5
+      if(GCODE_ADD_DWELL.includes(gcode.command)){
+        output.push(`G4 P5`) // Wait 5 seconds
       }
     }
   }
