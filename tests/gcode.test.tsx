@@ -13,17 +13,37 @@ describe('parsing gcode', () => {
       expect(gcodes[2].parameters.S).toEqual(5000)
   })
 
+  it('should ignore parenthesis comments', async () => {
+    const gcode = parseLine("(2D Contour)")
+    expect(gcode.command).toBe("")
+    expect(gcode.cleanLine).toBe("")
+    expect(Object.values(gcode.parameters).length).toBe(0)
+  })
+
+  it('should ignore semicolon comments', async () => {
+    const gcode = parseLine(";FLAVOR:Marlin")
+    expect(gcode.command).toBe("")
+    expect(gcode.cleanLine).toBe("")
+    expect(Object.values(gcode.parameters).length).toBe(0)
+  })
+
   it('should ignore comments', async () => {
     const gcode = parseLine("(2D Contour)")
     expect(gcode.command).toBe("")
     expect(gcode.cleanLine).toBe("")
     expect(Object.values(gcode.parameters).length).toBe(0)
   })
+
+  it('should ignore G94', async () => {
+    const gcode = parseLine("G90 G94")
+    expect(gcode.command).toBe("G90")
+    expect(gcode.cleanLine).toBe("G90 G94")
+  })
 })
 
 describe("parameters to string", () => {
   it("should turn parameters to string", () => {
     const params = parametersToString({X: 500, F: 6000})
-    expect(params).toBe("X500 F6000")
+    expect(params).toBe("F6000 X500")
   })
 })

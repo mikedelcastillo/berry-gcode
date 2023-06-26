@@ -1,5 +1,34 @@
-import { parseGCode } from "./gcode"
+import { GCode, parseGCode } from "./gcode"
 
-export const process = (data: string) => {
-  const gcode = parseGCode(data)
+const GCODE_ADD_DWELL = ["M3", "M4", "M5"]
+const GCODE_IGNORE = ["G54", "M8", "M9"]
+
+export const processData = (data: string) => {
+  const output: string[] = []
+
+  let lastG: GCode | null = null
+
+  const gcodes = parseGCode(data)
+  for(const gcode of gcodes){
+    if(gcode.command.startsWith("G")){
+      lastG = gcode
+    }
+
+    if(gcode.command === "" && gcode.cleanLine !== ""){
+      if(lastG?.command.startsWith("G")){
+        output.push(`${lastG.command} ${gcode.cleanLine}`)
+      } else{
+        throw new Error(`Don't know what to do with "${gcode.rawLine}"`)
+      }
+    } else{
+      if(!GCODE_IGNORE.includes(gcode.command)){
+        output.push(gcode.cleanLine)
+        // Add dwell to M3, M4, M5
+        if(GCODE_ADD_DWELL.includes(gcode.command)){
+          output.push(`G4 P5`) // Wait 5 seconds
+        }
+      }
+    }
+  }
+  return output.join("\n")
 }

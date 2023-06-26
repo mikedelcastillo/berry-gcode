@@ -1,12 +1,16 @@
-import { watch } from "fs";
-import { INDIR, tryRead } from "./lib/files";
-import { join } from "path";
-import { parseGCode } from "./lib/gcode";
+import { watch, promises as fs } from "fs";
+import { INDIR, processFile } from "./lib/files";
 
-watch(INDIR, async (eventType, filename) => {
-  if(filename === null) return
-  const filePath = join(INDIR, filename)
-  const data = await tryRead(filePath)
-  if(typeof data === "undefined") return
-  console.log(parseGCode(data))
-})
+const run = async () => {
+  const filenames = await fs.readdir(INDIR)
+  for(const filename of filenames){
+    await processFile(filename)
+  }
+
+  watch(INDIR, async (_eventType, filename) => {
+    await processFile(filename)
+  })
+}
+
+run()
+
