@@ -7,15 +7,17 @@ export const processData = (data: string) => {
   const output: string[] = []
 
   let lastG: GCode | null = null
+  let lastM: GCode | null = null
 
   const gcodes = parseGCode(data)
   for(const gcode of gcodes){
-    if(gcode.command.startsWith("G")){
-      lastG = gcode
-    }
+    if(gcode.command.startsWith("G")) lastG = gcode
+    if(gcode.command.startsWith("M")) lastM = gcode
 
     if(gcode.command === "" && gcode.cleanLine !== ""){
-      if(lastG?.command.startsWith("G")){
+      if(gcode.command === "" && typeof gcode.parameters.S === "number"){
+        output.push(`${lastM?.command} S${gcode.parameters.S}`)
+      }else if(lastG !== null){
         output.push(`${lastG.command} ${gcode.cleanLine}`)
       } else{
         throw new Error(`Don't know what to do with "${gcode.rawLine}"`)
@@ -23,6 +25,7 @@ export const processData = (data: string) => {
     } else{
       if(!GCODE_IGNORE.includes(gcode.command)){
         output.push(gcode.cleanLine)
+
         // Add dwell to M3, M4, M5
         if(GCODE_ADD_DWELL.includes(gcode.command)){
           output.push(`G4 P5`) // Wait 5 seconds
