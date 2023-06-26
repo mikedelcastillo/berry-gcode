@@ -15,9 +15,11 @@ export const processData = (data: string) => {
     if(gcode.command.startsWith("M")) lastM = gcode
 
     if(gcode.command === "" && gcode.cleanLine !== ""){
-      if(gcode.command === "" && typeof gcode.parameters.S === "number"){
+      if(typeof gcode.parameters.T === "number"){
+        // Ignore tool change
+      } else if(gcode.command === "" && typeof gcode.parameters.S === "number"){
         output.push(`${lastM?.command} S${gcode.parameters.S}`)
-      }else if(lastG !== null){
+      }else if(lastG !== null && ["G0", "G1", "G2", "G3"].includes(lastG.command)){
         output.push(`${lastG.command} ${gcode.cleanLine}`)
       } else{
         throw new Error(`Don't know what to do with "${gcode.rawLine}"`)
